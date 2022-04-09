@@ -5,6 +5,7 @@
 #define FALSE 0
 #define TOKENSIZE 100
 #define BUFFERSIZE 200
+#define MAXRESERVED 6
 
 typedef enum
 {
@@ -21,10 +22,18 @@ typedef enum
     // token
     ID, NUM
 } TokenType;
+
+static struct
+{
+    char *str;
+    TokenType tok;
+} reservedWords[MAXRESERVED] = {{"else", ELSE}, {"if", IF}, {"int", INT}, {"return", RETURN}, {"void", VOID}, {"while", WHILE}};
+
 void scan(FILE *fp, FILE *outputfp);
 int isDigit(char c);
 int isLetter(char c);
 void printToken(int lineIndex, TokenType curToken, char *tokenString, FILE *fp);
+TokenType checkReservedWord(char *t);
 
 int main(int argc, char *argv[])
 {
@@ -56,11 +65,13 @@ int main(int argc, char *argv[])
         fprintf(stderr, "File %s not found\n", sourcefilename);
         exit(1);
     }
+    outputfp = fopen(outputfilename, "w");
 
-    outputfp = stdout; // for test
+    // outputfp = stdout; // for test
     printf("%s %s\n", sourcefilename, outputfilename);
     scan(fp, outputfp);
     fclose(fp);
+    fclose(outputfp);
     return 0;
 }
 
@@ -176,7 +187,7 @@ void scan(FILE *fp, FILE *outputfp)
                         save = FALSE;
                         bIndex--; // lookahead
                         state = FINISH;
-                        currentToken = NUM; // TODO : TOKEN SAVE
+                        currentToken = NUM;
                     }
                     break;
                 case IN_ID:
@@ -293,10 +304,10 @@ void scan(FILE *fp, FILE *outputfp)
                 {
                     token[tIndex] = '\0';
                     tIndex = 0;
-                    // if(currentToken == ID) // check reserved keyword
-                    // {
-                        
-                    // }
+                    if(currentToken == ID) // check reserved keyword
+                    {
+                        currentToken = checkReservedWord(token);
+                    }
                     printToken(lineIndex,currentToken,token,outputfp);
                     memset(token,'\0',TOKENSIZE);
                 }
@@ -370,4 +381,17 @@ void printToken(int lineIndex, TokenType curToken, char *tokenString, FILE *fp)
         default:
             break;
     }
+}
+
+TokenType checkReservedWord(char *t)
+{
+    int i;
+    for(i=0;i<MAXRESERVED;i++)
+    {
+        if(!strcmp(t,reservedWords[i].str))
+        {
+            return reservedWords[i].tok;
+        }
+    }
+    return ID;
 }
