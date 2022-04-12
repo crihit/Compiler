@@ -91,10 +91,19 @@ void scan(FILE *fp, FILE *outputfp)
 
     int breaking = FALSE; // check break
     char c;
-
+    int i;
     eof = fgets(lineBuffer, sizeof(lineBuffer), fp); // read 1 line
     while (eof != NULL)
     {
+        for(i=0;i<BUFFERSIZE;i++)
+        {
+            if(lineBuffer[i]=='\0' && lineBuffer[i-1]!='\n')
+            {
+                lineBuffer[i] = '\n';
+                lineBuffer[i+1] = '\0';
+                break;
+            }
+        }
         fprintf(outputfp, "%d: %s", lineIndex, lineBuffer); // print line
         bIndex = 0;
         breaking = FALSE;
@@ -129,10 +138,16 @@ void scan(FILE *fp, FILE *outputfp)
                         state = IN_COMMENT;
                         save = FALSE; // If not comment, save token OVER
                     }
-                    else if ((c == ' ') || (c == '\t') || (c == '\n') || (c == '\0'))
+                    else if ((c == ' ') || (c == '\t') || (c == '\n'))
                     {
                         state = START;
                         save = FALSE;
+                    }
+                    else if((c == EOF))
+                    {
+                        currentToken = ENDFILE;
+                        state = FINISH;
+                        printf("eof");
                     }
                     else
                     {
@@ -321,9 +336,12 @@ void scan(FILE *fp, FILE *outputfp)
 
         eof = fgets(lineBuffer, sizeof(lineBuffer), fp); // get next line
         lineIndex++;
+        if(eof=='\0')
+        {
+            printToken(lineIndex,ENDFILE,"",outputfp);
+        }
         bIndex = 0;
     }
-
     if(state == COMMENT || state == OUT_COMMENT) // comment error
     {
         fprintf(stderr, "Stop before ending\n");
