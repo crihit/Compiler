@@ -1,3 +1,4 @@
+#define _CRT_SECURE_NO_WARNINGS // for VS2019
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -68,7 +69,7 @@ int main(int argc, char *argv[])
     outputfp = fopen(outputfilename, "w");
 
     // outputfp = stdout; // for test
-    printf("%s %s\n", sourcefilename, outputfilename);
+    // printf("%s %s\n", sourcefilename, outputfilename);
     scan(fp, outputfp);
     fclose(fp);
     fclose(outputfp);
